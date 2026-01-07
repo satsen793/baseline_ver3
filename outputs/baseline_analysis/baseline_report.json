@@ -1,0 +1,65 @@
+{
+  "summary_json": {
+    "mean_reward": 100.16287674616702,
+    "reward_sd": 41.198977810338064,
+    "policy_stability": 41.198977810338064,
+    "mean_final_mastery": 0.4315221538083881,
+    "mean_question_accuracy": 0.8350856277449742,
+    "mean_blueprint_adherence": 47.169082125603865,
+    "mean_content_rate": 0.14075187969924813,
+    "mean_post_content_gain": 0.03605465473819661,
+    "mean_time_to_mastery": null,
+    "time_to_mastery_sd": null
+  },
+  "stats": {
+    "cumulative_reward": {
+      "mean": 100.16287674616702,
+      "sd": 42.269259361443474,
+      "ci_low": 80.38048177121158,
+      "ci_high": 119.94527172112245,
+      "n": 20
+    },
+    "final_mastery": {
+      "mean": 0.4315221538083881,
+      "sd": 0.062194582604384596,
+      "ci_low": 0.40241452767608077,
+      "ci_high": 0.4606297799406954,
+      "n": 20
+    },
+    "time_to_mastery": {
+      "mean": NaN,
+      "sd": 0.0,
+      "ci_low": NaN,
+      "ci_high": NaN,
+      "n": 0
+    },
+    "question_accuracy": {
+      "mean": 0.8350856277449742,
+      "sd": 0.16782531880423235,
+      "ci_low": 0.7565418634695227,
+      "ci_high": 0.9136293920204257,
+      "n": 20
+    },
+    "blueprint_adherence": {
+      "mean": 47.169082125603865,
+      "sd": 1.6356477013604949,
+      "ci_low": 46.4035842352456,
+      "ci_high": 47.934580015962126,
+      "n": 20
+    },
+    "content_rate": {
+      "mean": 0.14075187969924813,
+      "sd": 0.27754628578696744,
+      "ci_low": 0.010857712348922688,
+      "ci_high": 0.27064604704957357,
+      "n": 20
+    },
+    "post_content_gain": {
+      "mean": 0.03605465473819661,
+      "sd": 0.039631089533901195,
+      "ci_low": 0.0175069470591122,
+      "ci_high": 0.05460236241728103,
+      "n": 20
+    }
+  }
+}
