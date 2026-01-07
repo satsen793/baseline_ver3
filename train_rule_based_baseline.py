@@ -77,6 +77,7 @@ class BaselineConfig:
     output_dir: Path = Path("outputs/baseline")
     include_timing: bool = False
     save_step_logs: bool = False
+    total_steps: int | None = None
 
 
 class RuleBasedController:
@@ -337,6 +338,7 @@ def parse_args() -> BaselineConfig:
     parser.add_argument("--output-dir", type=str, default="outputs/baseline", help="Directory to store metrics")
     parser.add_argument("--save-step-logs", action="store_true", help="Save per-step logs per seed to outputs/baseline/steps")
     parser.add_argument("--include-timing", action="store_true", help="Record wall-clock time per episode")
+    parser.add_argument("--total-steps", type=int, default=None, help="Total environment steps per seed (run multiple episodes until reached)")
     args = parser.parse_args()
 
     seed_list = [int(s) for s in args.seeds.split(",") if s.strip()]
@@ -345,6 +347,7 @@ def parse_args() -> BaselineConfig:
         output_dir=Path(args.output_dir),
         include_timing=bool(args.include_timing),
         save_step_logs=bool(args.save_step_logs),
+        total_steps=args.total_steps,
     )
 
 
@@ -358,20 +361,16 @@ def main() -> None:
 
     episode_results: List[EpisodeMetrics] = []
     for seed in cfg.seeds:
-        start_t = time.perf_counter()
-        log, metrics = run_episode(env, controller, seed, cfg)
-        end_t = time.perf_counter()
-        if cfg.include_timing:
-            metrics.wall_clock_ms = (end_t - start_t) * 1000.0
-        episode_results.append(metrics)
-
+        steps_dir = cfg.output_dir / "steps"
         if cfg.save_step_logs:
-            steps_dir = cfg.output_dir / "steps"
             steps_dir.mkdir(parents=True, exist_ok=True)
             step_path = steps_dir / f"seed_{seed}.csv"
+            # Write header fresh for each seed run
             with step_path.open("w", newline="") as f:
                 writer = csv.writer(f)
                 writer.writerow([
+                    "episode",
+                    "global_step",
                     "step",
                     "action_id",
                     "action_type",
@@ -382,18 +381,43 @@ def main() -> None:
                     "mastery_gain",
                     "mastery_mean",
                 ])
-                for e in log:
-                    writer.writerow([
-                        e.get("step"),
-                        e.get("action_id"),
-                        e.get("action_type"),
-                        e.get("difficulty"),
-                        e.get("modality"),
-                        e.get("reward"),
-                        e.get("correct"),
-                        e.get("mastery_gain"),
-                        e.get("mastery_mean"),
-                    ])
+
+        global_step = 0
+        episode_index = 0
+        # Run episodes until total_steps reached or run single episode if not specified
+        while True:
+            start_t = time.perf_counter()
+            log, metrics = run_episode(env, controller, seed + episode_index, cfg)
+            end_t = time.perf_counter()
+            if cfg.include_timing:
+                metrics.wall_clock_ms = (end_t - start_t) * 1000.0
+            episode_results.append(metrics)
+
+            if cfg.save_step_logs:
+                step_path = steps_dir / f"seed_{seed}.csv"
+                with step_path.open("a", newline="") as f:
+                    writer = csv.writer(f)
+                    for e in log:
+                        global_step += 1
+                        writer.writerow([
+                            episode_index,
+                            global_step,
+                            e.get("step"),
+                            e.get("action_id"),
+                            e.get("action_type"),
+                            e.get("difficulty"),
+                            e.get("modality"),
+                            e.get("reward"),
+                            e.get("correct"),
+                            e.get("mastery_gain"),
+                            e.get("mastery_mean"),
+                        ])
+
+            episode_index += 1
+            if cfg.total_steps is None:
+                break
+            if global_step >= cfg.total_steps:
+                break
 
     summary = aggregate_results(episode_results)
     save_results(episode_results, summary, cfg)

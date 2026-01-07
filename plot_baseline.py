@@ -43,18 +43,20 @@ def plot_learning_curve(step_df: pd.DataFrame, out_dir: Path) -> None:
     # Compute per-seed cumulative reward vs step
     step_df = step_df.copy()
     step_df["reward"] = step_df["reward"].astype(float)
+    # Use global_step if present to avoid episode boundary resets
+    step_col = "global_step" if "global_step" in step_df.columns else "step"
     curves = []
     for seed, df_s in step_df.groupby("seed"):
-        df_s = df_s.sort_values("step")
+        df_s = df_s.sort_values(step_col)
         df_s["cum_reward"] = df_s["reward"].cumsum()
-        curves.append(df_s[["step", "cum_reward"]].assign(seed=seed))
+        curves.append(df_s[[step_col, "cum_reward"]].assign(seed=seed))
     curve_all = pd.concat(curves, ignore_index=True)
     # Average across seeds on common steps
-    mean_curve = curve_all.groupby("step")["cum_reward"].mean().reset_index()
+    mean_curve = curve_all.groupby(step_col)["cum_reward"].mean().reset_index()
 
     plt.figure(figsize=(10, 6))
-    plt.plot(mean_curve["step"], mean_curve["cum_reward"], label="Baseline (avg)")
-    plt.xlabel("Step")
+    plt.plot(mean_curve[step_col], mean_curve["cum_reward"], label="Baseline (avg)")
+    plt.xlabel("Global Step" if step_col == "global_step" else "Step")
     plt.ylabel("Cumulative Reward (avg across seeds)")
     plt.title("Baseline Learning Curve (Average)")
     plt.legend()
