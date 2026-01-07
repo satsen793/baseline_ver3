@@ -1,0 +1,17 @@
+{
+  "mean_reward": 98.91629112012602,
+  "reward_sd": 43.21478082313349,
+  "reward_ci95": 2.4319687248773056,
+  "mean_final_mastery": 0.42364259797685844,
+  "final_mastery_ci95": 0.0035216686063730025,
+  "mean_question_accuracy": 0.8104185235706732,
+  "mean_blueprint_adherence": 48.10096579277447,
+  "blueprint_adherence_ci95": 0.195780917324795,
+  "mean_content_rate": 0.10321714543005192,
+  "mean_post_content_gain": 0.013735856034246803,
+  "post_content_gain_ci95": 0.0013407641331281436,
+  "mean_time_to_mastery": null,
+  "time_to_mastery_ci95": null,
+  "mean_wall_clock_ms": 13.98173929019243,
+  "wall_clock_ms_ci95": 0.2964434333477799
+}

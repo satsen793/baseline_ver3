@@ -1,12 +1,12 @@
 {
-  "mean_reward": 100.16287674616702,
-  "reward_sd": 41.198977810338064,
-  "policy_stability": 41.198977810338064,
-  "mean_final_mastery": 0.4315221538083881,
-  "mean_question_accuracy": 0.8350856277449742,
-  "mean_blueprint_adherence": 47.169082125603865,
-  "mean_content_rate": 0.14075187969924813,
-  "mean_post_content_gain": 0.03605465473819661,
+  "mean_reward": 98.91629112012602,
+  "reward_sd": 43.196963967779986,
+  "policy_stability": 43.196963967779986,
+  "mean_final_mastery": 0.42364259797685844,
+  "mean_question_accuracy": 0.8104185235706732,
+  "mean_blueprint_adherence": 48.100965792774474,
+  "mean_content_rate": 0.10321714543005195,
+  "mean_post_content_gain": 0.013735856034246815,
   "mean_time_to_mastery": null,
   "time_to_mastery_sd": null
 }
