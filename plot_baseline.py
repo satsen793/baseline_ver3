@@ -63,6 +63,8 @@ def plot_learning_curve(step_df: pd.DataFrame, out_dir: Path) -> None:
     plt.tight_layout()
     out_path = out_dir / "learning_curve_baseline.png"
     plt.savefig(out_path, dpi=150)
+    # Alias for Elsevier template
+    plt.savefig(out_dir / "learning_curve_moving_avg_reward.png", dpi=150)
     plt.close()
 
 
@@ -70,25 +72,30 @@ def plot_time_to_mastery(metrics_df: pd.DataFrame, out_dir: Path) -> None:
     # Filter non-empty time_to_mastery
     df = metrics_df.copy()
     df = df[df["time_to_mastery"].notna() & (df["time_to_mastery"] != "")]
-    if df.empty:
-        return
-    df["time_to_mastery"] = df["time_to_mastery"].astype(float)
-    mean = df["time_to_mastery"].mean()
-    sd = df["time_to_mastery"].std(ddof=1)
-    n = len(df)
-    ci = 1.96 * sd / np.sqrt(n) if n > 1 else 0.0
-
-    plt.figure(figsize=(8, 5))
-    sns.kdeplot(df["time_to_mastery"], fill=True, color="#4C78A8")
-    plt.axvline(mean, color="k", linestyle="--", label=f"mean={mean:.1f}")
-    plt.axvspan(mean - ci, mean + ci, color="orange", alpha=0.3, label="95% CI")
-    plt.xlabel("Time to Mastery (steps)")
-    plt.ylabel("Density")
-    plt.title("Baseline Time-to-Mastery Distribution")
-    plt.legend()
-    plt.tight_layout()
     out_path = out_dir / "time_to_mastery_baseline.png"
+    plt.figure(figsize=(8, 5))
+    if df.empty:
+        # Fallback figure so manuscript always has the panel
+        plt.text(0.5, 0.5, "No episodes reached mastery threshold", ha="center", va="center")
+        plt.axis("off")
+        plt.title("Baseline Time-to-Mastery (not achieved)")
+    else:
+        df["time_to_mastery"] = df["time_to_mastery"].astype(float)
+        mean = df["time_to_mastery"].mean()
+        sd = df["time_to_mastery"].std(ddof=1)
+        n = len(df)
+        ci = 1.96 * sd / np.sqrt(n) if n > 1 else 0.0
+        sns.kdeplot(df["time_to_mastery"], fill=True, color="#4C78A8")
+        plt.axvline(mean, color="k", linestyle="--", label=f"mean={mean:.1f}")
+        plt.axvspan(mean - ci, mean + ci, color="orange", alpha=0.3, label="95% CI")
+        plt.xlabel("Time to Mastery (steps)")
+        plt.ylabel("Density")
+        plt.title("Baseline Time-to-Mastery Distribution")
+        plt.legend()
+    plt.tight_layout()
     plt.savefig(out_path, dpi=150)
+    # Alias for Elsevier template
+    plt.savefig(out_dir / "time_to_mastery.png", dpi=150)
     plt.close()
 
 
@@ -112,6 +119,8 @@ def plot_post_content_by_modality(steps_df: pd.DataFrame, out_dir: Path) -> None
     plt.tight_layout()
     out_path = out_dir / "post_content_gain_by_modality_baseline.png"
     plt.savefig(out_path, dpi=150)
+    # Alias for Elsevier template
+    plt.savefig(out_dir / "post_content_gain_by_modality.png", dpi=150)
     plt.close()
 
 
@@ -128,6 +137,67 @@ def plot_blueprint_adherence(metrics_df: pd.DataFrame, out_dir: Path) -> None:
     plt.tight_layout()
     out_path = out_dir / "blueprint_adherence_baseline.png"
     plt.savefig(out_path, dpi=150)
+    plt.close()
+
+
+def plot_compute_vs_reward(metrics_df: pd.DataFrame, out_dir: Path) -> None:
+    df = metrics_df.copy()
+    if "wall_clock_ms" not in df.columns:
+        return
+    df["wall_clock_ms"] = pd.to_numeric(df["wall_clock_ms"], errors="coerce")
+    df["cumulative_reward"] = pd.to_numeric(df["cumulative_reward"], errors="coerce")
+    df = df.dropna(subset=["wall_clock_ms", "cumulative_reward"])
+    plt.figure(figsize=(8, 5))
+    sns.scatterplot(data=df, x="wall_clock_ms", y="cumulative_reward", color="#C8501D")
+    plt.xlabel("Wall-Clock (ms)")
+    plt.ylabel("Cumulative Reward")
+    plt.title("Baseline Compute vs Reward")
+    plt.tight_layout()
+    plt.savefig(out_dir / "compute_vs_reward_baseline.png", dpi=150)
+    # Alias for Elsevier template
+    plt.savefig(out_dir / "compute_vs_reward.png", dpi=150)
+    plt.close()
+
+
+def plot_variance_across_seeds(step_df: pd.DataFrame, out_dir: Path) -> None:
+    if step_df.empty:
+        return
+    df = step_df.copy()
+    df["reward"] = pd.to_numeric(df["reward"], errors="coerce")
+    # Compute cumulative reward per seed over global_step or step
+    step_col = "global_step" if "global_step" in df.columns else "step"
+    curves = []
+    for seed, df_s in df.groupby("seed"):
+        df_s = df_s.sort_values(step_col)
+        df_s["cum_reward"] = df_s["reward"].cumsum()
+        curves.append(df_s[[step_col, "cum_reward"]].assign(seed=seed))
+    curve_all = pd.concat(curves, ignore_index=True)
+    # Compute std across seeds per step
+    var_curve = curve_all.groupby(step_col)["cum_reward"].std(ddof=1).reset_index()
+    if var_curve.empty:
+        return
+    plt.figure(figsize=(10, 6))
+    plt.plot(var_curve[step_col], var_curve["cum_reward"], color="#845EC2")
+    plt.xlabel("Global Step" if step_col == "global_step" else "Step")
+    plt.ylabel("Std Dev of Cumulative Reward Across Seeds")
+    plt.title("Baseline Variance Across Seeds")
+    plt.tight_layout()
+    plt.savefig(out_dir / "variance_across_seeds_baseline.png", dpi=150)
+    # Alias for Elsevier template
+    plt.savefig(out_dir / "variance_across_seeds.png", dpi=150)
+    plt.close()
+
+
+def plot_calibration_placeholder(out_dir: Path) -> None:
+    # Baseline has no predictive model; produce placeholder panel for manuscript parity
+    plt.figure(figsize=(8, 5))
+    plt.text(0.5, 0.5, "Calibration N/A for baseline", ha="center", va="center")
+    plt.axis("off")
+    plt.title("Calibration Curve (Baseline)")
+    plt.tight_layout()
+    plt.savefig(out_dir / "calibration_curve_mastery_baseline.png", dpi=150)
+    # Alias for Elsevier template
+    plt.savefig(out_dir / "calibration_curve_mastery.png", dpi=150)
     plt.close()
 
 
@@ -150,6 +220,9 @@ def main() -> None:
     plot_time_to_mastery(metrics_df, out_dir)
     plot_post_content_by_modality(steps_df, out_dir)
     plot_blueprint_adherence(metrics_df, out_dir)
+    plot_compute_vs_reward(metrics_df, out_dir)
+    plot_variance_across_seeds(steps_df, out_dir)
+    plot_calibration_placeholder(out_dir)
 
     print(f"Saved figures to {out_dir}")
 
